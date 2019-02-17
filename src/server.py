@@ -18,6 +18,7 @@ urls = (
     '/login', 'LoginHandler',
     '/logout', 'LogoutHandler',
     '/socket.io/.*', 'SocketHandler',
+    '/test', 'test.Test',
 )
 
 app = web.application(urls, globals())

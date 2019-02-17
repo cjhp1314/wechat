@@ -1,7 +1,7 @@
 #coding:utf-8
 import web
 
-db = web.database(dbn='sqlite', db="wechat.db")
+db = web.database(host='localhost', dbn='mysql', db='webpy_websocket', user='rw_user', pw='testpasswd')
 
 
 class DBManage(object):

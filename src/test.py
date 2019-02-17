@@ -15,6 +15,8 @@ from models import Message, User, Topic
 session = web.config._session
 
 CACHE_USER = {}
+render = web.template.render('templates/')
+
 
 
 def sha1(data):
@@ -36,136 +38,9 @@ class CJsonEncoder(json.JSONEncoder):
 def to_json(data):
     return json.dumps(data, cls=CJsonEncoder)
 
-# 首页
-class IndexHandler:
+class Test(object):
     def GET(self):
-        render = web.template.render('templates/')
-        return render.index()
-
-
-class UserHandler:
-    def GET(self):
-        # 获取当前登录的用户数据
-        user = session.user
-        return to_json(user)
-
-    def POST(self):
-        data = web.data()
-        data = json.loads(data)
-        username = data.get("username")
-        password = data.get("password")
-        password_repeat = data.get("password_repeat")
-
-        if password != password_repeat:
-            return bad_request('两次密码输入不一致')
-
-        user_data = {
-            "username": username,
-            "password": sha1(password),
-            "registed_time": datetime.now(),
-        }
-
-        try:
-            user_id = User.create(**user_data)
-        except sqlite3.IntegrityError:
-            return bad_request('用户名已存在!')
-
-        user = User.get_by_id(user_id)
-        session.login = True
-        session.user = user
-
-        result = {
-            'id': user_id,
-            'username': username,
-        }
-        return to_json(result)
-
-
-class LoginHandler:
-    def POST(self):
-        data = web.data()
-        data = json.loads(data)
-        username = data.get("username")
-        password = data.get("password")
-        user = User.get_by_username_password(
-            username=username,
-            password=sha1(password)
-        )
-        if not user:
-            return bad_request('用户名或密码错误！')
-
-        session.login = True
-        session.user = user
-        result = {
-            'id': user.get('id'),
-            'username': user.get('username'),
-        }
-        return to_json(result)
-
-
-class LogoutHandler:
-    def GET(self):
-        session.login = False
-        session.user = None
-        session.kill()
-        return web.tempredirect('/#login')
-
-
-class TopicHandler:
-    def GET(self, pk=None):
-        if pk:
-            topic = Topic.get_by_id(pk)
-            return to_json(topic)
-
-        topics = Topic.get_all()
-        result = []
-        for t in topics:
-            topic = dict(t)
-            try:
-                user = CACHE_USER[t.owner_id]
-            except KeyError:
-                user = User.get_by_id(t.owner_id)
-                CACHE_USER[t.owner_id] = user
-            topic['owner_name'] = user.username
-            result.append(topic)
-        return to_json(result)
-
-    def POST(self):
-        if not session.user or not session.user.id:
-            return bad_request('请先登录！')
-        if session.user.username != 'web':
-            return bad_request('sorry，你没有创建权限')
-
-        data = web.data()
-        data = json.loads(data)
-
-        topic_data = {
-            "title": data.get('title'),
-            "owner_id": session.user.id,
-            "created_time": datetime.now(),
-        }
-
-        try:
-            topic_id = Topic.create(**topic_data)
-        except sqlite3.IntegrityError:
-            return bad_request('你已创建过该名称!')
-
-        result = {
-            "id": topic_id,
-            "title": topic_data.get('title'),
-            "owner_id": session.user.id,
-            "owner_name": session.user.username,
-            "created_time": str(topic_data.get('created_time')),
-        }
-        return to_json(result)
-
-    def PUT(self, obj_id=None):
-        data = web.data()
-        print data
-
-    def DELETE(self, obj_id=None):
-        pass
-
+        return render.test()
 
 class MessageHandler:
     def GET(self):
